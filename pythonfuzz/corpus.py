@@ -46,7 +46,7 @@ class Corpus(object):
     def _rand(n):
         if n < 2:
             return 0
-        return random._randbelow(n)
+        return random.randint(0, n-1)
 
     # Exp2 generates n with probability 1/2^(n+1).
     @staticmethod
