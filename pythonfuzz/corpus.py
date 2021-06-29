@@ -56,7 +56,7 @@ class Corpus(object):
         count = 0
         for i in rand_bin:
             if i == '0':
-                count +=1
+                count += 1
             else:
                 break
         return count

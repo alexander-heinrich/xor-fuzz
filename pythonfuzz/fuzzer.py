@@ -1,8 +1,8 @@
 import os
 import sys
 import time
-import sys
 import psutil
+import collections
 import hashlib
 import logging
 import functools
@@ -13,7 +13,7 @@ from pythonfuzz import corpus, tracer
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 logging.getLogger().setLevel(logging.DEBUG)
 
-SAMPLING_WINDOW = 5 # IN SECONDS
+SAMPLING_WINDOW = 5  # IN SECONDS
 
 try:
     lru_cache = functools.lru_cache

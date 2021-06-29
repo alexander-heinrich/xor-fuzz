@@ -5,6 +5,7 @@ prev_line = 0
 prev_filename = ''
 data = collections.defaultdict(set)
 
+
 def trace(frame, event, arg):
     if event != 'line':
         return trace
@@ -16,9 +17,9 @@ def trace(frame, event, arg):
     func_line_no = frame.f_lineno
 
     if func_filename != prev_filename:
-        # We need a way to keep track of inter-files transferts,
+        # We need a way to keep track of inter-files transfers,
         # and since we don't really care about the details of the coverage,
-        # concatenating the two filenames in enough.
+        # concatenating the two filenames is enough.
         data[func_filename + prev_filename].add((prev_line, func_line_no))
     else:
         data[func_filename].add((prev_line, func_line_no))
@@ -27,6 +28,10 @@ def trace(frame, event, arg):
     prev_filename = func_filename
 
     return trace
+
+
+def get_coverage_lines():
+    return data
 
 
 def get_coverage():
