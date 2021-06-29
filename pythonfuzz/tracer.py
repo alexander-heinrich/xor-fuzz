@@ -30,9 +30,42 @@ def trace(frame, event, arg):
     return trace
 
 
-def get_coverage_lines():
-    return data
-
-
 def get_coverage():
     return sum(map(len, data.values()))
+
+
+class Tracer(object):
+    def traceit(self, frame, event, arg):
+        if self.original_trace_function is not None:
+            self.original_trace_function(frame, event, arg)
+
+        if event == "line":
+            function_name = frame.f_code.co_name
+            lineno = frame.f_lineno
+            self._trace.append((function_name, lineno))
+
+        return self.traceit
+
+    def __init__(self):
+        self._trace = []
+
+    # Executes at start of `with` block
+    def __enter__(self):
+        self.original_trace_function = sys.gettrace()
+        sys.settrace(self.traceit)
+        return self
+
+    # Executes at end of `with` block
+    def __exit__(self, exc_type, exc_value, tb):
+        sys.settrace(self.original_trace_function)
+
+    # List of (function_name, line_number) for executed lines
+    def coverage_list(self):
+        return self._trace
+
+    # Set of (function_name, line_number) for executed lines
+    def coverage_set(self):
+        return set(self.coverage_list())
+
+    def num_lines_covered(self):
+        return sum(map(len, self._trace))

@@ -35,17 +35,18 @@ def worker(target, child_conn, close_fd_mask):
     if close_fd_mask & 2:
         sys.stderr = DummyFile()
 
-    sys.settrace(tracer.trace)
+    # sys.settrace(tracer.trace)
     while True:
         buf = child_conn.recv_bytes()
-        try:
-            target(buf)
-        except Exception as e:
-            logging.exception(e)
-            child_conn.send(e)
-            break
-        else:
-            child_conn.send_bytes(b'%d' % tracer.get_coverage())
+        with tracer.Tracer() as t:
+            try:
+                target(buf)
+            except Exception as e:
+                logging.exception(e)
+                child_conn.send(e)
+                break
+            else:
+                child_conn.send_bytes(b'%d' % t.num_lines_covered())
 
 
 class Fuzzer(object):
