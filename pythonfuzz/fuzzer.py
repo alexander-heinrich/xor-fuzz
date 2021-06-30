@@ -47,6 +47,7 @@ def worker(target, child_conn, close_fd_mask):
                 break
             else:
                 child_conn.send_bytes(b'%d' % t.num_lines_covered())
+                child_conn.send(t.coverage_set())
 
 
 class Fuzzer(object):
@@ -73,6 +74,7 @@ class Fuzzer(object):
         self._executions_in_sample = 0
         self._last_sample_time = time.time()
         self._total_coverage = 0
+        self._total_coverage_set = set()
         self._p = None
         self.runs = runs
 
@@ -124,6 +126,7 @@ class Fuzzer(object):
 
             try:
                 total_coverage = int(parent_conn.recv_bytes())
+                coverage_set = parent_conn.recv()
             except ValueError:
                 self.write_sample(buf)
                 break
@@ -131,8 +134,14 @@ class Fuzzer(object):
             self._total_executions += 1
             self._executions_in_sample += 1
             rss = 0
+            # if bool(coverage_set - self._total_coverage_set):
             if total_coverage > self._total_coverage:
                 rss = self.log_stats("NEW")
+                # filtered = {x for x in coverage_set if x[0] == 'fuzz'}
+                # print("New results", coverage_set)
+                # print("Old", self._total_coverage_set)
+                print("Difference between old and new", coverage_set - self._total_coverage_set)
+                self._total_coverage_set |= coverage_set
                 self._total_coverage = total_coverage
                 self._corpus.put(buf)
             else:
