@@ -65,7 +65,7 @@ class Tracer(object):
 
     # Set of (function_name, line_number) for executed lines
     def coverage_set(self):
-        return set(self.coverage_list())
+        return frozenset(self.coverage_list())
 
     def num_lines_covered(self):
         return sum(map(len, self._trace))

@@ -14,10 +14,14 @@ INTERESTING32 = [0, 1, 32768, 65535, 65536, 100663045, 2147483647, 4294967295]
 
 class Corpus(object):
     def __init__(self, dirs=None, max_input_size=4096, dict_path=None):
-        self._inputs = []
-        self._dict = dictionnary.Dictionary(dict_path)
+        self._inputs = {0: ([bytearray(0)], 0)}
+        # print(self._inputs)
+        # print(self._inputs.items())
+        # self._dict = dictionnary.Dictionary(dict_path)
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
+
+        # TODO: support files with new
         for i, path in enumerate(dirs):
             if i == 0 and not os.path.exists(path):
                 os.mkdir(path)
@@ -29,10 +33,12 @@ class Corpus(object):
                     fname = os.path.join(path, i)
                     if os.path.isfile(fname):
                         self._add_file(fname)
+        # TODO: support input arguments
         self._seed_run_finished = not self._inputs
         self._seed_idx = 0
         self._save_corpus = dirs and os.path.isdir(dirs[0])
-        self._inputs.append(bytearray(0))
+        # TODO: Initial dictionary (from file?)
+        self._seeds = [bytearray(0)]
 
     def _add_file(self, path):
         with open(path, 'rb') as f:
@@ -78,8 +84,25 @@ class Corpus(object):
         byte_to_copy = min(end_source-start_source, end_dst-start_dst)
         src[start_source:start_source+byte_to_copy] = dst[start_dst:start_dst+byte_to_copy]
 
-    def put(self, buf):
-        self._inputs.append(buf)
+    def put(self, buf, trace):
+        # print(self._inputs.keys())
+        if trace in self._inputs.keys():
+            seed_list = self._inputs[trace][0]
+            if buf not in seed_list:
+                if len(seed_list) < 10:
+                    seed_list.append(buf)
+                    if len(seed_list) == 10:
+                        print("10 Candidates found", seed_list)
+                else:
+                    return True
+        else:
+            # print("not in dict")
+            self._inputs[trace] = ([buf], 0)
+        # print(buf)
+
+        return False
+        # self._inputs.append(buf)
+        # TODO: implement save
         if self._save_corpus:
             m = hashlib.sha256()
             m.update(buf)
@@ -88,15 +111,19 @@ class Corpus(object):
                 f.write(buf)
 
     def generate_input(self):
+        # TODO: What is this for?
         if not self._seed_run_finished:
-            next_input = self._inputs[self._seed_idx]
+            next_input = self._seeds[self._seed_idx]
             self._seed_idx += 1
-            if self._seed_idx >= len(self._inputs):
+            if self._seed_idx >= len(self._seeds):
                 self._seed_run_finished = True
             return next_input
 
-        buf = self._inputs[self._rand(len(self._inputs))]
-        return self.mutate(buf)
+        # buf = self._inputs[self._rand(len(self._inputs))]
+        # print(list(self._inputs.items()))
+        key, value = random.choice(list(self._inputs.items()))
+        # print("seeds", seeds[1][0])
+        return self.mutate(value[0][0])
 
     def mutate(self, buf):
         res = buf[:]
@@ -281,4 +308,5 @@ class Corpus(object):
 
         if len(res) > self._max_input_size:
             res = res[:self._max_input_size]
+        # print(res)
         return res
