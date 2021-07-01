@@ -14,10 +14,7 @@ INTERESTING32 = [0, 1, 32768, 65535, 65536, 100663045, 2147483647, 4294967295]
 
 class Corpus(object):
     def __init__(self, dirs=None, max_input_size=4096, dict_path=None):
-        self._inputs = {0: ([bytearray(0)], 0)}
-        # print(self._inputs)
-        # print(self._inputs.items())
-        # self._dict = dictionnary.Dictionary(dict_path)
+        self._inputs = dict()
         self._max_input_size = max_input_size
         self._dirs = dirs if dirs else []
 
@@ -85,23 +82,24 @@ class Corpus(object):
         src[start_source:start_source+byte_to_copy] = dst[start_dst:start_dst+byte_to_copy]
 
     def put(self, buf, trace):
-        # print(self._inputs.keys())
         if trace in self._inputs.keys():
             seed_list = self._inputs[trace][0]
             if buf not in seed_list:
-                if len(seed_list) < 10:
+                if len(seed_list) < 4:
                     seed_list.append(buf)
-                    if len(seed_list) == 10:
-                        print("10 Candidates found", seed_list)
+                    if len(seed_list) == 4:
+                        print("4 Candidates found", seed_list)
+                        one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
+                        three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
+                        allxor = [a ^ b for (a, b) in zip(one_two, three_four)]
+                        # self._inputs[trace][1] = allxor
+                        print(allxor)
                 else:
                     return True
         else:
-            # print("not in dict")
-            self._inputs[trace] = ([buf], 0)
-        # print(buf)
+            self._inputs[trace] = ([buf], None)
 
         return False
-        # self._inputs.append(buf)
         # TODO: implement save
         if self._save_corpus:
             m = hashlib.sha256()
@@ -111,6 +109,8 @@ class Corpus(object):
                 f.write(buf)
 
     def generate_input(self):
+        if not self._inputs:
+            return self.mutate(bytearray([self._rand(256)]))
         # TODO: What is this for?
         if not self._seed_run_finished:
             next_input = self._seeds[self._seed_idx]
@@ -120,9 +120,7 @@ class Corpus(object):
             return next_input
 
         # buf = self._inputs[self._rand(len(self._inputs))]
-        # print(list(self._inputs.items()))
         key, value = random.choice(list(self._inputs.items()))
-        # print("seeds", seeds[1][0])
         return self.mutate(value[0][0])
 
     def mutate(self, buf):
@@ -308,5 +306,4 @@ class Corpus(object):
 
         if len(res) > self._max_input_size:
             res = res[:self._max_input_size]
-        # print(res)
         return res
