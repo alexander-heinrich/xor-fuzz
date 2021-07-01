@@ -2,6 +2,7 @@ import os
 import math
 import random
 import struct
+import itertools
 import hashlib
 
 from . import dictionnary
@@ -81,6 +82,15 @@ class Corpus(object):
         byte_to_copy = min(end_source-start_source, end_dst-start_dst)
         src[start_source:start_source+byte_to_copy] = dst[start_dst:start_dst+byte_to_copy]
 
+    @staticmethod
+    def _truncate_to_last(elements, target):
+        for i, el in enumerate(reversed(elements)):
+            print(el)
+            print(target)
+            if el == target:
+                return elements[0:(len(elements) - i)]
+        return None
+
     def put(self, buf, trace):
         if trace in self._inputs.keys():
             seed_list = self._inputs[trace][0]
@@ -91,9 +101,12 @@ class Corpus(object):
                         print("4 Candidates found", seed_list)
                         one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
                         three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
-                        allxor = [a ^ b for (a, b) in zip(one_two, three_four)]
-                        # self._inputs[trace][1] = allxor
-                        print(allxor)
+                        mask = [a ^ b for (a, b) in zip(one_two, three_four)]
+                        mask_truncated = self._truncate_to_last(mask, 0)
+                        print("mask", mask)
+                        print("mast", mask_truncated)
+                        self._inputs[trace] = (seed_list, mask_truncated)
+                        print(self._inputs[trace])
                 else:
                     return True
         else:
@@ -110,7 +123,7 @@ class Corpus(object):
 
     def generate_input(self):
         if not self._inputs:
-            return self.mutate(bytearray([self._rand(256)]))
+            return self.mutate(bytearray([self._rand(256)]), None)
         # TODO: What is this for?
         if not self._seed_run_finished:
             next_input = self._seeds[self._seed_idx]
@@ -120,10 +133,10 @@ class Corpus(object):
             return next_input
 
         # buf = self._inputs[self._rand(len(self._inputs))]
-        key, value = random.choice(list(self._inputs.items()))
-        return self.mutate(value[0][0])
+        _, (seed_list, mask) = random.choice(list(self._inputs.items()))
+        return self.mutate(seed_list[0], mask)
 
-    def mutate(self, buf):
+    def mutate(self, buf, mask):
         res = buf[:]
         nm = self._rand_exp()
         for i in range(nm):
@@ -306,4 +319,15 @@ class Corpus(object):
 
         if len(res) > self._max_input_size:
             res = res[:self._max_input_size]
-        return res
+
+        if not mask:
+            return res
+        else:
+            if len(res) < len(mask):
+                # if shorter than mask let it truncate
+                zip_func = zip
+            else:
+                # if mask longer, then pad
+                zip_func = itertools.zip_longest
+            tmp = [mutant if mask_el != 0 else buf[i] for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+            return bytearray(tmp)
