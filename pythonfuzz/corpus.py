@@ -85,8 +85,6 @@ class Corpus(object):
     @staticmethod
     def _truncate_to_last(elements, target):
         for i, el in enumerate(reversed(elements)):
-            print(el)
-            print(target)
             if el == target:
                 return elements[0:(len(elements) - i)]
         return None
@@ -98,13 +96,11 @@ class Corpus(object):
                 if len(seed_list) < 4:
                     seed_list.append(buf)
                     if len(seed_list) == 4:
-                        print("4 Candidates found", seed_list)
+                        print("4 Candidates found", seed_list, trace)
                         one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
                         three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
                         mask = [a ^ b for (a, b) in zip(one_two, three_four)]
                         mask_truncated = self._truncate_to_last(mask, 0)
-                        print("mask", mask)
-                        print("mast", mask_truncated)
                         self._inputs[trace] = (seed_list, mask_truncated)
                         print(self._inputs[trace])
                 else:
@@ -323,11 +319,6 @@ class Corpus(object):
         if not mask:
             return res
         else:
-            if len(res) < len(mask):
-                # if shorter than mask let it truncate
-                zip_func = zip
-            else:
-                # if mask longer, then pad
-                zip_func = itertools.zip_longest
-            tmp = [mutant if mask_el != 0 else buf[i] for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+            zip_func = itertools.zip_longest
+            tmp = [buf[i] if mask_el == 0 else mutant for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
             return bytearray(tmp)
