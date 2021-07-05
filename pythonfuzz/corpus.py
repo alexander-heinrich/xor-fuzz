@@ -99,7 +99,7 @@ class Corpus(object):
                         print("4 Candidates found", seed_list, trace)
                         one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
                         three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
-                        mask = [a ^ b for (a, b) in zip(one_two, three_four)]
+                        mask = [a | b for (a, b) in zip(one_two, three_four)]
                         mask_truncated = self._truncate_to_last(mask, 0)
                         self._inputs[trace] = (seed_list, mask_truncated)
                         print(self._inputs[trace])
