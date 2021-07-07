@@ -137,20 +137,17 @@ class Fuzzer(object):
             self._total_executions += 1
             self._executions_in_sample += 1
             rss = 0
-            # if bool(coverage_set - self._total_coverage_set):
             if total_coverage > self._total_coverage:
-                # print("New results", coverage_set)
-                # print("Old", self._total_coverage_set)
-                # print("Difference between old and new", coverage_set - self._total_coverage_set)
 
                 filtered = {x for x in coverage_set if x[0] == 'fuzz'}
-                # print(frozenset(coverage_set))
-                if self._corpus.put(buf, frozenset(filtered)):
+                (coverage_increased, log) = self._corpus.put(buf, frozenset(filtered))
+                if coverage_increased:
                     self._total_coverage = total_coverage
                 else:
-                    # rss = self.log_stats("NEW")
-                    # print(buf)
                     pass
+
+                if log != '':
+                    self.log_stats(log)
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')

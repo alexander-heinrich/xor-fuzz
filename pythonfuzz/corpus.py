@@ -96,19 +96,27 @@ class Corpus(object):
                 if len(seed_list) < 4:
                     seed_list.append(buf)
                     if len(seed_list) == 4:
-                        print("4 Candidates found", seed_list, trace)
                         one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
                         three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
                         mask = [a | b for (a, b) in zip(one_two, three_four)]
                         mask_truncated = self._truncate_to_last(mask, 0)
                         self._inputs[trace] = (seed_list, mask_truncated)
-                        print(self._inputs[trace])
+                        log = "FOUR CANDIDATES FOUND FOR PATH:\n"
+                        log += str(seed_list) + "\n"
+                        log += "MASK: " + str(self._inputs[trace][1]) + "\n"
+                        log += "TRACE: " + str(trace) + "\n"
+                        return (True, log)
+                    else:
+                        return (False, 'NEW INPUT FOR PATH')
                 else:
-                    return True
+                    return (False, '')
+            else:
+                return (False, '')
         else:
             self._inputs[trace] = ([buf], None)
+            log = str(self._inputs[trace])
+            return (False, 'NEW PATH')
 
-        return False
         # TODO: implement save
         if self._save_corpus:
             m = hashlib.sha256()
