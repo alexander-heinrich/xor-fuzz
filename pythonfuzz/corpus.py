@@ -320,5 +320,6 @@ class Corpus(object):
             return res
         else:
             zip_func = itertools.zip_longest
-            tmp = [buf[i] if mask_el == 0 else mutant for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+            tmp = [buf[i] if mask_el == 0 or i >= len(res) else mutant for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+
             return bytearray(tmp)
