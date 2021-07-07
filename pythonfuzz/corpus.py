@@ -105,7 +105,7 @@ class Corpus(object):
                         log += str(seed_list) + "\n"
                         log += "MASK: " + str(self._inputs[trace][1]) + "\n"
                         log += "TRACE: " + str(trace) + "\n"
-                        return (True, log)
+                        return (mask_truncated, log)
                     else:
                         return (False, 'NEW INPUT FOR PATH')
                 else:
@@ -139,6 +139,23 @@ class Corpus(object):
         # buf = self._inputs[self._rand(len(self._inputs))]
         _, (seed_list, mask) = random.choice(list(self._inputs.items()))
         return self.mutate(seed_list[0], mask)
+
+    def generate_mask_tests(self, mask, sample):
+        tests = []
+        for i, el in enumerate(mask):
+            if el == 0:
+                copy = sample.copy()
+                copy[i] ^= 1 << self._rand(8)
+                tests.append((i, copy))
+
+        return tests
+
+    def correct_mask(self, index, trace):
+        mask = self._inputs[trace][1]
+        mask[index] = 1
+        mask_truncated = self._truncate_to_last(mask, 0)
+        self._inputs[trace] = (self._inputs[trace][0], mask_truncated)
+        return mask_truncated
 
     def mutate(self, buf, mask):
         res = buf[:]

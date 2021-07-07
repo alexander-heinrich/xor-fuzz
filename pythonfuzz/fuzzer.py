@@ -139,15 +139,23 @@ class Fuzzer(object):
             rss = 0
             if total_coverage > self._total_coverage:
 
-                filtered = {x for x in coverage_set if x[0] == 'fuzz'}
-                (coverage_increased, log) = self._corpus.put(buf, frozenset(filtered))
-                if coverage_increased:
+                # filtered = frozenset({x for x in coverage_set if x[0] == 'fuzz'})
+                (found_mask, log) = self._corpus.put(buf, coverage_set)
+                if found_mask:
+                    tests = self._corpus.generate_mask_tests(found_mask, buf)
+                    for (i, test) in tests:
+                        parent_conn.send_bytes(test)
+                        test_cov = int(parent_conn.recv_bytes())
+                        _ = parent_conn.recv()
+                        if test_cov == total_coverage:
+                            mask = self._corpus.correct_mask(i, coverage_set)
+                            log += "Mask corrected! " + str(mask) + "\n"
+
                     self._total_coverage = total_coverage
+                    self.log_stats(log)
                 else:
                     pass
 
-                if log != '':
-                    self.log_stats(log)
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')
