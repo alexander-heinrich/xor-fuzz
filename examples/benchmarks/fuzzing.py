@@ -31,7 +31,7 @@ def raise_timeout(signum, frame):
 MINUTES = 60
 
 if __name__ == '__main__':
-    duration = 5 * MINUTES
+    duration = 30 * MINUTES
     start = time()
     found_exceptions = []
     signal.signal(signal.SIGALRM, raise_timeout)
