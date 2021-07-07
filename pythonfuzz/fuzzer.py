@@ -152,10 +152,13 @@ class Fuzzer(object):
                             log += "Mask corrected! " + str(mask) + "\n"
 
                     self._total_coverage = total_coverage
-                    self.log_stats(log)
+                    self._total_coverage_set |= coverage_set
+                    # print("coverage", self._total_coverage_set)
                 else:
                     pass
 
+                if log:
+                    self.log_stats(log)
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')

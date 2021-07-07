@@ -20,6 +20,11 @@ class Corpus(object):
         self._dirs = dirs if dirs else []
 
         # TODO: support files with new
+        # TODO: support input arguments
+        self._seeds = None
+        self._seed_run_finished = not self._inputs
+        self._seed_idx = 0
+        self._save_corpus = dirs and os.path.isdir(dirs[0])
         for i, path in enumerate(dirs):
             if i == 0 and not os.path.exists(path):
                 os.mkdir(path)
@@ -31,16 +36,11 @@ class Corpus(object):
                     fname = os.path.join(path, i)
                     if os.path.isfile(fname):
                         self._add_file(fname)
-        # TODO: support input arguments
-        self._seed_run_finished = not self._inputs
-        self._seed_idx = 0
-        self._save_corpus = dirs and os.path.isdir(dirs[0])
-        # TODO: Initial dictionary (from file?)
-        self._seeds = [bytearray(0)]
 
     def _add_file(self, path):
         with open(path, 'rb') as f:
-            self._inputs.append(bytearray(f.read()))
+            seed = bytearray(f.read())
+            self._seeds = seed
 
     @property
     def length(self):
@@ -113,7 +113,11 @@ class Corpus(object):
             else:
                 return (False, '')
         else:
-            self._inputs[trace] = ([buf], None)
+            if buf == self._seeds:
+                mask = [0] * len(self._seeds)
+            else:
+                mask = None
+            self._inputs[trace] = ([buf], mask)
             log = str(self._inputs[trace])
             return (False, 'NEW PATH')
 
@@ -127,14 +131,10 @@ class Corpus(object):
 
     def generate_input(self):
         if not self._inputs:
-            return self.mutate(bytearray([self._rand(256)]), None)
-        # TODO: What is this for?
-        if not self._seed_run_finished:
-            next_input = self._seeds[self._seed_idx]
-            self._seed_idx += 1
-            if self._seed_idx >= len(self._seeds):
-                self._seed_run_finished = True
-            return next_input
+            if self._seeds:
+                return self._seeds
+            else:
+                return self.mutate(bytearray([self._rand(256)]), None)
 
         # buf = self._inputs[self._rand(len(self._inputs))]
         _, (seed_list, mask) = random.choice(list(self._inputs.items()))
@@ -145,7 +145,8 @@ class Corpus(object):
         for i, el in enumerate(mask):
             if el == 0:
                 copy = sample.copy()
-                copy[i] ^= 1 << self._rand(8)
+                # copy[i] ^= 1 << self._rand(8)
+                copy[i] ^= 0x8
                 tests.append((i, copy))
 
         return tests
