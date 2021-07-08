@@ -68,4 +68,4 @@ class Tracer(object):
         return frozenset(self.coverage_list())
 
     def num_lines_covered(self):
-        return sum(map(len, self._trace))
+        return len(self._trace)

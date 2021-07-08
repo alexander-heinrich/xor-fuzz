@@ -77,6 +77,9 @@ class Fuzzer(object):
         self._total_coverage_set = set()
         self._p = None
         self.runs = runs
+        self._start = time.time()
+        self._coverage_log_file = 'coverage_over_time'
+        os.remove(self._coverage_log_file)
 
         self._seed_dict = dict()
 
@@ -153,7 +156,12 @@ class Fuzzer(object):
 
                     self._total_coverage = total_coverage
                     self._total_coverage_set |= coverage_set
-                    # print("coverage", self._total_coverage_set)
+                    print("Coverage Lines", len(self._total_coverage_set))
+                    print("Coverage Set", self._total_coverage_set)
+                    with open(self._coverage_log_file, 'ab') as f:
+                        at = int(time.time() - self._start)
+                        string = f"{at}: {len(self._total_coverage_set)}\n"
+                        f.write(string.encode("utf-8"))
                 else:
                     pass
 
