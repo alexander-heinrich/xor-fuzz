@@ -140,10 +140,12 @@ class Fuzzer(object):
                 # filtered = {x for x in coverage_set if x[0] == 'fuzz'}
                 # print("New results", coverage_set)
                 # print("Old", self._total_coverage_set)
-                print("Difference between old and new", coverage_set - self._total_coverage_set)
+                # print("Difference between old and new", coverage_set - self._total_coverage_set)
                 self._total_coverage_set |= coverage_set
                 self._total_coverage = total_coverage
                 self._corpus.put(buf)
+                print("Coverage Lines", self._total_coverage)
+                print("Coverage Set", self._total_coverage_set)
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')
