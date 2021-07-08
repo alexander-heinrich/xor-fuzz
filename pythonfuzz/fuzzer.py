@@ -77,6 +77,9 @@ class Fuzzer(object):
         self._total_coverage_set = set()
         self._p = None
         self.runs = runs
+        self._start = time.time()
+        self._coverage_log_file = 'coverage_over_time'
+        os.remove(self._coverage_log_file)
 
     def log_stats(self, log_type):
         rss = (psutil.Process(self._p.pid).memory_info().rss + psutil.Process(os.getpid()).memory_info().rss) / 1024 / 1024
@@ -144,8 +147,12 @@ class Fuzzer(object):
                 self._total_coverage_set |= coverage_set
                 self._total_coverage = total_coverage
                 self._corpus.put(buf)
-                print("Coverage Lines", self._total_coverage)
+                print("Coverage Lines", len(self._total_coverage_set))
                 print("Coverage Set", self._total_coverage_set)
+                with open(self._coverage_log_file, 'ab') as f:
+                    at = int(time.time() - self._start)
+                    string = f"{at}: {len(self._total_coverage_set)}\n"
+                    f.write(string.encode("utf-8"))
             else:
                 if (time.time() - self._last_sample_time) > SAMPLING_WINDOW:
                     rss = self.log_stats('PULSE')
