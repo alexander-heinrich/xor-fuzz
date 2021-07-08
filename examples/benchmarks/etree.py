@@ -1,17 +1,16 @@
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
 from pythonfuzz.main import PythonFuzz
 from time import time
+from html.parser import HTMLParser
 import signal
-import xmlbear
 
 
 @PythonFuzz
 def fuzz(buf):
     try:
-        string = buf.decode("utf-8")
-        ET.fromstring(string)
-    except (UnicodeDecodeError, ParseError):
+        string = buf.decode("ascii")
+        parser = HTMLParser()
+        parser.feed(string)
+    except UnicodeDecodeError:
         pass
 
 
