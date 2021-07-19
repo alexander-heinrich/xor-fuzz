@@ -80,6 +80,8 @@ class Fuzzer(object):
         self._start = time.time()
         self._coverage_log_file = 'coverage_over_time'
         os.remove(self._coverage_log_file)
+        f = open(self._coverage_log_file, 'wb')
+        f.close()
 
         self._seed_dict = dict()
 
