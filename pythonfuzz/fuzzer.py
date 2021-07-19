@@ -80,6 +80,8 @@ class Fuzzer(object):
         self._start = time.time()
         self._coverage_log_file = 'coverage_over_time'
         os.remove(self._coverage_log_file)
+        f = open(self._coverage_log_file, 'wb')
+        f.close()
 
     def log_stats(self, log_type):
         rss = (psutil.Process(self._p.pid).memory_info().rss + psutil.Process(os.getpid()).memory_info().rss) / 1024 / 1024
