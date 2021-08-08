@@ -133,7 +133,7 @@ class Fuzzer(object):
                 break
 
             try:
-                total_coverage = int(parent_conn.recv_bytes())
+                coverage = int(parent_conn.recv_bytes())
                 coverage_set = parent_conn.recv()
             except ValueError:
                 self.write_sample(buf)
@@ -142,7 +142,7 @@ class Fuzzer(object):
             self._total_executions += 1
             self._executions_in_sample += 1
             rss = 0
-            if total_coverage > self._total_coverage:
+            if coverage > self._total_coverage:
 
                 # filtered = frozenset({x for x in coverage_set if x[0] == 'fuzz'})
                 (found_mask, log) = self._corpus.put(buf, coverage_set)
@@ -152,11 +152,11 @@ class Fuzzer(object):
                         parent_conn.send_bytes(test)
                         test_cov = int(parent_conn.recv_bytes())
                         _ = parent_conn.recv()
-                        if test_cov == total_coverage:
+                        if test_cov == coverage:
                             mask = self._corpus.correct_mask(i, coverage_set)
                             log += "Mask corrected! " + str(mask) + "\n"
 
-                    self._total_coverage = total_coverage
+                    self._total_coverage = coverage
                     self._total_coverage_set |= coverage_set
                     print("Coverage Lines", len(self._total_coverage_set))
                     print("Coverage Set", self._total_coverage_set)

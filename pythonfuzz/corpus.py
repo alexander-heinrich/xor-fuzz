@@ -92,24 +92,21 @@ class Corpus(object):
     def put(self, buf, trace):
         if trace in self._inputs.keys():
             seed_list = self._inputs[trace][0]
-            if buf not in seed_list:
-                if len(seed_list) < 4:
-                    seed_list.append(buf)
-                    if len(seed_list) == 4:
-                        one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
-                        three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
-                        mask = [a | b for (a, b) in zip(one_two, three_four)]
-                        mask_truncated = self._truncate_to_last(mask, 0)
-                        self._inputs[trace] = (seed_list, mask_truncated)
-                        log = "FOUR CANDIDATES FOUND FOR PATH:\n"
-                        log += str(seed_list) + "\n"
-                        log += "MASK: " + str(self._inputs[trace][1]) + "\n"
-                        log += "TRACE: " + str(trace) + "\n"
-                        return (mask_truncated, log)
-                    else:
-                        return (False, 'NEW INPUT FOR PATH')
+            if buf not in seed_list and len(seed_list) < 4:
+                seed_list.append(buf)
+                if len(seed_list) == 4:
+                    one_two = [a ^ b for (a, b) in zip(seed_list[0], seed_list[1])]
+                    three_four = [a ^ b for (a, b) in zip(seed_list[2], seed_list[3])]
+                    mask = [a | b for (a, b) in zip(one_two, three_four)]
+                    mask_truncated = self._truncate_to_last(mask, 0)
+                    self._inputs[trace] = (seed_list, mask_truncated)
+                    log = "FOUR CANDIDATES FOUND FOR PATH:\n"
+                    log += str(seed_list) + "\n"
+                    log += "MASK: " + str(self._inputs[trace][1]) + "\n"
+                    log += "TRACE: " + str(trace) + "\n"
+                    return (mask_truncated, log)
                 else:
-                    return (False, '')
+                    return (False, 'NEW INPUT FOR PATH')
             else:
                 return (False, '')
         else:
@@ -121,7 +118,6 @@ class Corpus(object):
             log = str(self._inputs[trace])
             return (False, 'NEW PATH')
 
-        # TODO: implement save
         if self._save_corpus:
             m = hashlib.sha256()
             m.update(buf)
@@ -136,7 +132,6 @@ class Corpus(object):
             else:
                 return self.mutate(bytearray([self._rand(256)]), None)
 
-        # buf = self._inputs[self._rand(len(self._inputs))]
         _, (seed_list, mask) = random.choice(list(self._inputs.items()))
         return self.mutate(seed_list[0], mask)
 
@@ -145,7 +140,6 @@ class Corpus(object):
         for i, el in enumerate(mask):
             if el == 0:
                 copy = sample.copy()
-                # copy[i] ^= 1 << self._rand(8)
                 copy[i] ^= 0x8
                 tests.append((i, copy))
 
