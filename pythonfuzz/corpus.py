@@ -90,7 +90,15 @@ class Corpus(object):
         return None
 
     def put(self, buf, trace):
-        if trace in self._inputs.keys():
+        if trace not in self._inputs.keys():
+            if buf == self._seeds:
+                mask = [0] * len(self._seeds)
+            else:
+                mask = None
+            self._inputs[trace] = ([buf], mask)
+            log = str(self._inputs[trace])
+            return (False, 'NEW PATH')
+        else:
             seed_list = self._inputs[trace][0]
             if buf not in seed_list and len(seed_list) < 4:
                 seed_list.append(buf)
@@ -109,14 +117,6 @@ class Corpus(object):
                     return (False, 'NEW INPUT FOR PATH')
             else:
                 return (False, '')
-        else:
-            if buf == self._seeds:
-                mask = [0] * len(self._seeds)
-            else:
-                mask = None
-            self._inputs[trace] = ([buf], mask)
-            log = str(self._inputs[trace])
-            return (False, 'NEW PATH')
 
         if self._save_corpus:
             m = hashlib.sha256()
