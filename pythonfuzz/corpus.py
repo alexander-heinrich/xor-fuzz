@@ -339,7 +339,9 @@ class Corpus(object):
         if not mask:
             return res
         else:
-            zip_func = itertools.zip_longest
-            tmp = [buf[i] if mask_el == 0 or i >= len(res) else mutant for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+            return self.apply_mask(mask, res, buf)
 
-            return bytearray(tmp)
+    def apply_mask(self, mask, res, buf):
+        zip_func = itertools.zip_longest
+        tmp = [buf[i] if mask_el == 0 or i >= len(res) else mutant for i, (mutant, mask_el) in enumerate(zip_func(res, mask))]
+        return bytearray(tmp)
