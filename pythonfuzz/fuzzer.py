@@ -79,7 +79,6 @@ class Fuzzer(object):
         self.runs = runs
         self._start = time.time()
         self._coverage_log_file = 'coverage_over_time'
-        os.remove(self._coverage_log_file)
         f = open(self._coverage_log_file, 'wb')
         f.close()
 
