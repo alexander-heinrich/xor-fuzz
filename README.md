@@ -29,6 +29,9 @@ python examples/benchmarks/fuzzing.py
 ```
 python examples/benchmarks/etree.py
 ```
+```
+python examples/benchmarks/htmlparser.py
+```
 
 ### Fuzz Target
 
