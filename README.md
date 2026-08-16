@@ -15,7 +15,7 @@ Fuzzing can be seen as a powerful and efficient strategy in real-world software 
 To use XOR-Fuzz it is easiest to install it as an editable package. Run the following:
 
 ```
-git clone git@gitlab.com:alexanderheinrich/pythonfuzz.git xor-fuzz
+git clone https://github.com/alexander-heinrich/xor-fuzz.git
 cd xor-fuzz
 pip install -e .
 ```
